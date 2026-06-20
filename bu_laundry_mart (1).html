@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BU Laundry Mart</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('1j8IXS0Si9tE0qRzi');</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0B1120; --cobalt: #1A3CFF; --cobalt-dark: #1230CC; --cobalt-light: #3D5FFF;
+  --white: #FFFFFF; --mid: #8892A4; --muted: #C4CBDA; --card: #141C30; --border: #1E2A44;
+  --success: #00C896; --warn: #FFB800; --danger: #FF3C3C;
+  --bebas: 'Bebas Neue', sans-serif; --inter: 'Inter', sans-serif;
+  --radius: 12px; --radius-sm: 8px;
+}
+body { font-family: var(--inter); background: var(--navy); color: var(--white); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* SCREENS */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* AUTH */
+#screen-auth {
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; position: relative; overflow: hidden;
+}
+#screen-auth::before {
+  content: ''; position: absolute; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(26,60,255,0.18) 0%, transparent 70%);
+  top: -200px; right: -200px; pointer-events: none;
+}
+#screen-auth::after {
+  content: ''; position: absolute; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(26,60,255,0.1) 0%, transparent 70%);
+  bottom: -100px; left: -100px; pointer-events: none;
+}
+.auth-logo { text-align: center; margin-bottom: 40px; z-index: 1; }
+.auth-logo h1 { font-family: var(--bebas); font-size: 52px; letter-spacing: 0.04em; line-height: 1; }
+.auth-logo h1 span { color: var(--cobalt); }
+.auth-logo p { font-size: 13px; color: var(--mid); margin-top: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+.auth-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 420px; z-index: 1; }
+.auth-tabs { display: flex; background: var(--navy); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 28px; }
+.auth-tab { flex: 1; padding: 9px; border: none; border-radius: 6px; background: transparent; color: var(--mid); font-family: var(--inter); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.auth-tab.active { background: var(--cobalt); color: var(--white); }
+.role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.role-card { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 16px 12px; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--white); }
+.role-card:hover { border-color: var(--cobalt-light); }
+.role-card.selected { border-color: var(--cobalt); background: rgba(26,60,255,0.12); }
+.role-icon { font-size: 28px; margin-bottom: 6px; }
+.role-label { font-size: 13px; font-weight: 600; display: block; }
+.role-sub { font-size: 11px; color: var(--mid); margin-top: 2px; display: block; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; background: var(--navy); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; color: var(--white); font-family: var(--inter); font-size: 14px; outline: none; transition: border-color 0.2s;
+}
+.form-group select option { background: var(--navy); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--cobalt); }
+.form-group input::placeholder, .form-group textarea::placeholder { color: var(--mid); }
+.form-group input.error { border-color: var(--danger); }
+.field-error { font-size: 11px; color: var(--danger); margin-top: 4px; display: none; }
+.field-error.show { display: block; }
+.btn-primary { width: 100%; background: var(--cobalt); color: var(--white); border: none; border-radius: var(--radius-sm); padding: 14px; font-family: var(--inter); font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 8px; }
+.btn-primary:hover { background: var(--cobalt-dark); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-switch { text-align: center; margin-top: 18px; font-size: 13px; color: var(--mid); }
+.auth-switch a { color: var(--cobalt-light); cursor: pointer; text-decoration: none; font-weight: 500; }
+
+/* OTP SCREEN */
+#screen-otp {
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; position: relative; overflow: hidden;
+}
+#screen-otp::before {
+  content: ''; position: absolute; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(26,60,255,0.18) 0%, transparent 70%);
+  top: -200px; right: -200px; pointer-events: none;
+}
+.otp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 32px; width: 100%; max-width: 400px; z-index: 1; text-align: center; }
+.otp-icon { font-size: 48px; margin-bottom: 16px; }
+.otp-title { font-family: var(--bebas); font-size: 32px; letter-spacing: 0.04em; margin-bottom: 8px; }
+.otp-sub { font-size: 13px; color: var(--mid); margin-bottom: 28px; line-height: 1.6; }
+.otp-sub strong { color: var(--white); }
+.otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; }
+.otp-input {
+  width: 52px; height: 60px; background: var(--navy); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--white); font-family: var(--bebas); font-size: 28px;
+  text-align: center; outline: none; transition: border-color 0.2s; caret-color: var(--cobalt);
+}
+.otp-input:focus { border-color: var(--cobalt); }
+.otp-input.filled { border-color: var(--cobalt-light); background: rgba(26,60,255,0.08); }
+.otp-resend { font-size: 13px; color: var(--mid); margin-top: 16px; }
+.otp-resend a { color: var(--cobalt-light); cursor: pointer; font-weight: 500; }
+.otp-hint { background: rgba(26,60,255,0.1); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: var(--mid); }
+.otp-hint strong { color: var(--cobalt-light); font-size: 20px; font-family: var(--bebas); letter-spacing: 0.1em; }
+
+/* APP LAYOUT */
+#screen-student, #screen-staff { flex-direction: column; }
+.app-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.app-header-logo { font-family: var(--bebas); font-size: 26px; letter-spacing: 0.04em; }
+.app-header-logo span { color: var(--cobalt); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-badge { display: flex; align-items: center; gap: 8px; background: var(--navy); border: 1px solid var(--border); border-radius: 40px; padding: 6px 14px 6px 8px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--cobalt); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.user-name { font-size: 13px; font-weight: 500; }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--mid); border-radius: var(--radius-sm); padding: 7px 14px; font-family: var(--inter); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+.app-nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+.nav-tab { padding: 14px 18px; border: none; background: transparent; color: var(--mid); font-family: var(--inter); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+.nav-tab.active { color: var(--white); border-bottom-color: var(--cobalt); }
+.nav-tab:hover:not(.active) { color: var(--muted); }
+.app-content { flex: 1; padding: 28px 24px; max-width: 960px; width: 100%; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.section-title { font-family: var(--bebas); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 20px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.card-sub { font-size: 13px; color: var(--mid); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.stat-value { font-family: var(--bebas); font-size: 40px; line-height: 1; color: var(--cobalt-light); }
+.stat-label { font-size: 12px; color: var(--mid); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 40px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.badge-pending { background: rgba(255,184,0,0.15); color: var(--warn); }
+.badge-washing { background: rgba(26,60,255,0.15); color: var(--cobalt-light); }
+.badge-done { background: rgba(0,200,150,0.15); color: var(--success); }
+.badge-new { background: rgba(255,60,60,0.15); color: var(--danger); }
+.order-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+.order-item:last-child { border-bottom: none; }
+.order-info { flex: 1; }
+.order-id { font-size: 13px; font-weight: 600; }
+.order-meta { font-size: 12px; color: var(--mid); margin-top: 3px; }
+.order-actions { display: flex; gap: 8px; align-items: center; }
+.btn-sm { padding: 6px 14px; border-radius: 6px; font-family: var(--inter); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-outline:hover { border-color: var(--cobalt); color: var(--cobalt-light); }
+.btn-blue { background: var(--cobalt); color: var(--white); }
+.btn-blue:hover { background: var(--cobalt-dark); }
+.chat-container { display: flex; flex-direction: column; height: 520px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--cobalt); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.chat-name { font-size: 14px; font-weight: 600; }
+.chat-status { font-size: 12px; color: var(--success); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.msg { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; }
+.msg-time { font-size: 10px; color: var(--mid); margin-top: 4px; }
+.msg.them { background: var(--navy); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg.me { background: var(--cobalt); align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-input-row { padding: 14px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+.chat-input { flex: 1; background: var(--navy); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--white); font-family: var(--inter); font-size: 14px; outline: none; transition: border-color 0.2s; }
+.chat-input:focus { border-color: var(--cobalt); }
+.chat-send { background: var(--cobalt); border: none; border-radius: 8px; padding: 10px 18px; color: var(--white); font-size: 16px; cursor: pointer; transition: background 0.2s; }
+.chat-send:hover { background: var(--cobalt-dark); }
+.status-select { background: var(--navy); border: 1px solid var(--border); color: var(--white); border-radius: 6px; padding: 5px 10px; font-family: var(--inter); font-size: 12px; cursor: pointer; outline: none; }
+.receipt-card { background: var(--navy); border: 1px dashed var(--border); border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 2; }
+.receipt-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 6px 0; }
+.receipt-total { display: flex; justify-content: space-between; padding: 10px 0 0; font-weight: 700; font-size: 15px; color: var(--cobalt-light); }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--success); color: var(--navy); padding: 12px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+@media (max-width: 600px) {
+  .app-content { padding: 16px; }
+  .auth-card, .otp-card { padding: 24px 20px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .otp-input { width: 44px; height: 54px; font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-logo">
+    <h1>BU <span>Laundry</span> Mart</h1>
+    <p>Bowen University · Clean &amp; Simple</p>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="tab-login">
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="login-phone" placeholder="09xxxxxxxxx">
+        <div class="field-error" id="err-login-phone">Enter a valid phone number</div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+        <div class="field-error" id="err-login-pass">Enter your password</div>
+      </div>
+      <div class="field-error" id="err-login-notfound" style="margin-bottom:10px">No account found. Please create one.</div>
+      <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+      <p class="auth-switch">No account? <a onclick="switchAuthTab('register')">Create one</a></p>
+    </div>
+    <!-- REGISTER -->
+    <div id="tab-register" style="display:none">
+      <p style="font-size:13px;color:var(--mid);margin-bottom:16px">I am a…</p>
+      <div class="role-selector">
+        <button class="role-card selected" id="role-student" onclick="selectRole('student')">
+          <div class="role-icon">🎓</div>
+          <span class="role-label">Student</span>
+          <span class="role-sub">Place &amp; track orders</span>
+        </button>
+        <button class="role-card" id="role-staff" onclick="selectRole('staff')">
+          <div class="role-icon">👕</div>
+          <span class="role-label">Laundry Staff</span>
+          <span class="role-sub">Manage orders</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="e.g. Jonathan Olutoye">
+        <div class="field-error" id="err-reg-name">Enter your full name</div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="reg-phone" placeholder="09xxxxxxxxx">
+        <div class="field-error" id="err-reg-phone">Enter a valid 11-digit phone number</div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="e.g. jonathan@gmail.com">
+        <div class="field-error" id="err-reg-email">Enter a valid email address</div>
+      </div>
+      <div class="form-group" id="matric-field">
+        <label>Matric Number</label>
+        <input type="text" id="reg-matric" placeholder="e.g. BU/21C/0001">
+        <div class="field-error" id="err-reg-matric">Enter your matric number</div>
+      </div>
+      <div class="form-group" id="room-field">
+        <label>Hostel &amp; Room Number</label>
+        <input type="text" id="reg-room" placeholder="e.g. Daniel Hall, Room 204">
+        <div class="field-error" id="err-reg-room">Enter your hostel and room number</div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-pass" placeholder="Minimum 6 characters">
+        <div class="field-error" id="err-reg-pass">Password must be at least 6 characters</div>
+      </div>
+      <div class="field-error" id="err-phone-exists" style="margin-bottom:10px">This phone number is already registered.</div>
+      <button class="btn-primary" onclick="handleRegister()">Send OTP &amp; Verify</button>
+      <p class="auth-switch">Already have an account? <a onclick="switchAuthTab('login')">Sign in</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- OTP SCREEN -->
+<div class="screen" id="screen-otp">
+  <div class="otp-card">
+    <div class="otp-icon">📧</div>
+    <div class="otp-title">Check Your Email</div>
+    <p class="otp-sub">We sent a 6-digit code to<br><strong id="otp-email-display"></strong></p>
+    <div class="otp-hint" id="otp-sending" style="background:rgba(26,60,255,0.1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--mid)">
+      Sending OTP... ⏳
+    </div>
+    <div class="otp-inputs">
+      <input class="otp-input" id="otp0" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,0)">
+      <input class="otp-input" id="otp1" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,1)">
+      <input class="otp-input" id="otp2" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,2)">
+      <input class="otp-input" id="otp3" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,3)">
+      <input class="otp-input" id="otp4" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,4)">
+      <input class="otp-input" id="otp5" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,5)">
+    </div>
+    <div class="field-error" id="err-otp" style="margin-bottom:12px;text-align:center">Incorrect code. Try again.</div>
+    <button class="btn-primary" onclick="verifyOTP()">Verify &amp; Continue</button>
+    <p class="otp-resend">Didn't receive it? <a onclick="resendOTP()">Resend code</a></p>
+  </div>
+</div>
+
+<!-- STUDENT DASHBOARD -->
+<div class="screen" id="screen-student">
+  <header class="app-header">
+    <div class="app-header-logo">BU <span>Laundry</span> Mart</div>
+    <div class="header-right">
+      <div class="user-badge">
+        <div class="avatar" id="student-avatar">J</div>
+        <span class="user-name" id="student-name">Jonathan</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </header>
+  <nav class="app-nav">
+    <button class="nav-tab active" onclick="switchTab('student','overview',this)">Overview</button>
+    <button class="nav-tab" onclick="switchTab('student','place',this)">Place Order</button>
+    <button class="nav-tab" onclick="switchTab('student','orders',this)">My Orders</button>
+    <button class="nav-tab" onclick="switchTab('student','receipts',this)">Receipts</button>
+    <button class="nav-tab" onclick="switchTab('student','chat',this)">Chat with Staff</button>
+  </nav>
+  <div class="app-content">
+    <!-- OVERVIEW -->
+    <div class="tab-panel active" id="student-overview">
+      <p class="section-title">Welcome back 👋</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="s-stat-active">0</div><div class="stat-label">Active Orders</div></div>
+        <div class="stat-card"><div class="stat-value" id="s-stat-total">0</div><div class="stat-label">Total Orders</div></div>
+        <div class="stat-card"><div class="stat-value" id="s-stat-ready">0</div><div class="stat-label">Ready for Pickup</div></div>
+        <div class="stat-card"><div class="stat-value" id="s-stat-spent">₦0</div><div class="stat-label">Total Spent</div></div>
+      </div>
+      <div class="card" id="s-recent-orders">
+        <p style="font-size:14px;font-weight:600;margin-bottom:16px">Recent Orders</p>
+        <p style="font-size:13px;color:var(--mid)">No orders yet. Place your first order!</p>
+      </div>
+    </div>
+    <!-- PLACE ORDER -->
+    <div class="tab-panel" id="student-place">
+      <p class="section-title">Place New Order</p>
+      <div class="card" style="max-width:480px">
+        <div class="form-group">
+          <label>Number of Items</label>
+          <input type="number" id="order-items" placeholder="e.g. 5" min="1" oninput="calcEstimate()">
+          <div class="field-error" id="err-order-items">Enter number of items</div>
+        </div>
+        <div class="form-group">
+          <label>Wash Type</label>
+          <select id="order-type" onchange="calcEstimate()">
+            <option value="">Select type</option>
+            <option value="300">Standard Wash — ₦300/item</option>
+            <option value="500">Express Wash — ₦500/item</option>
+            <option value="700">Dry Clean — ₦700/item</option>
+          </select>
+          <div class="field-error" id="err-order-type">Select a wash type</div>
+        </div>
+        <div class="form-group">
+          <label>Hostel / Room</label>
+          <input type="text" id="order-hostel" placeholder="e.g. Daniel Hall, Room 204">
+          <div class="field-error" id="err-order-hostel">Enter your hostel and room</div>
+        </div>
+        <div class="form-group">
+          <label>Special Instructions (optional)</label>
+          <textarea id="order-notes" rows="3" placeholder="e.g. Handle blue shirt with care"></textarea>
+        </div>
+        <div class="card" style="margin-bottom:16px;padding:16px;background:var(--navy)">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mid)">
+            <span>Estimated Total</span>
+            <span id="order-estimate" style="color:var(--cobalt-light);font-weight:600">—</span>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="placeOrder()">Submit Order</button>
+      </div>
+    </div>
+    <!-- MY ORDERS -->
+    <div class="tab-panel" id="student-orders">
+      <p class="section-title">My Orders</p>
+      <div class="card" id="student-order-list">
+        <p style="font-size:13px;color:var(--mid)">No orders yet.</p>
+      </div>
+    </div>
+    <!-- RECEIPTS -->
+    <div class="tab-panel" id="student-receipts">
+      <p class="section-title">Receipts</p>
+      <div id="student-receipt-list">
+        <p style="font-size:13px;color:var(--mid)">No receipts yet.</p>
+      </div>
+    </div>
+    <!-- CHAT -->
+    <div class="tab-panel" id="student-chat">
+      <p class="section-title">Chat with Staff</p>
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-avatar">👕</div>
+          <div><div class="chat-name">BU Laundry Staff</div><div class="chat-status">● Online</div></div>
+        </div>
+        <div class="chat-messages" id="student-messages">
+          <div class="msg them">Hi! Welcome to BU Laundry Mart. How can I help you today?<div class="msg-time">Now</div></div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="student-chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendStudentMsg()">
+          <button class="chat-send" onclick="sendStudentMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF DASHBOARD -->
+<div class="screen" id="screen-staff">
+  <header class="app-header">
+    <div class="app-header-logo">BU <span>Laundry</span> Mart <span style="font-family:var(--inter);font-size:11px;background:var(--cobalt);padding:2px 8px;border-radius:4px;margin-left:8px;letter-spacing:0.06em">STAFF</span></div>
+    <div class="header-right">
+      <div class="user-badge">
+        <div class="avatar" style="background:var(--success);color:var(--navy)" id="staff-avatar">S</div>
+        <span class="user-name" id="staff-name">Staff</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </header>
+  <nav class="app-nav">
+    <button class="nav-tab active" onclick="switchTab('staff','overview',this)">Overview</button>
+    <button class="nav-tab" onclick="switchTab('staff','orders',this)">All Orders</button>
+    <button class="nav-tab" onclick="switchTab('staff','chat',this)">Student Chat</button>
+  </nav>
+  <div class="app-content">
+    <!-- STAFF OVERVIEW -->
+    <div class="tab-panel active" id="staff-overview">
+      <p class="section-title">Staff Dashboard</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="st-stat-new">0</div><div class="stat-label">New Orders</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-stat-progress">0</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-stat-ready">0</div><div class="stat-label">Ready Today</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-stat-revenue">₦0</div><div class="stat-label">Total Revenue</div></div>
+      </div>
+      <div class="card">
+        <p style="font-size:14px;font-weight:600;margin-bottom:16px">🔴 Orders Needing Action</p>
+        <div id="staff-new-orders"><p style="font-size:13px;color:var(--mid)">No new orders.</p></div>
+      </div>
+    </div>
+    <!-- ALL ORDERS -->
+    <div class="tab-panel" id="staff-orders">
+      <p class="section-title">All Orders</p>
+      <div class="card" id="staff-all-orders"><p style="font-size:13px;color:var(--mid)">No orders yet.</p></div>
+    </div>
+    <!-- STAFF CHAT -->
+    <div class="tab-panel" id="staff-chat">
+      <p class="section-title">Student Messages</p>
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-avatar">🎓</div>
+          <div><div class="chat-name">Students</div><div class="chat-status">● Online</div></div>
+        </div>
+        <div class="chat-messages" id="staff-messages">
+          <div class="msg them">Hi, is my order ready?<div class="msg-time">Now</div></div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="staff-chat-input" placeholder="Reply to student…" onkeydown="if(event.key==='Enter')sendStaffMsg()">
+          <button class="chat-send" onclick="sendStaffMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ STATE ══
+let currentRole = 'student';
+let pendingUser = {};
+let generatedOTP = '';
+const RATES = { '300': 'Standard Wash', '500': 'Express Wash', '700': 'Dry Clean' };
+
+// ══ LOCALSTORAGE HELPERS ══
+const LS = {
+  getUsers: () => JSON.parse(localStorage.getItem('bul_users') || '[]'),
+  saveUsers: (u) => localStorage.setItem('bul_users', JSON.stringify(u)),
+  getSession: () => JSON.parse(localStorage.getItem('bul_session') || 'null'),
+  saveSession: (s) => localStorage.setItem('bul_session', JSON.stringify(s)),
+  clearSession: () => localStorage.removeItem('bul_session'),
+  getOrders: () => JSON.parse(localStorage.getItem('bul_orders') || '[]'),
+  saveOrders: (o) => localStorage.setItem('bul_orders', JSON.stringify(o)),
+};
+
+// ══ FIELD VALIDATION ══
+function fieldErr(id, show) {
+  const el = document.getElementById(id);
+  if (el) { el.classList.toggle('show', show); }
+}
+function clearErrors(...ids) { ids.forEach(id => fieldErr(id, false)); }
+function markInput(id, error) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('error', error);
+}
+
+// ══ AUTH TAB ══
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').style.display    = tab === 'login' ? 'block' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((t, i) =>
+    t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  clearErrors('err-login-phone','err-login-pass','err-login-notfound','err-reg-name','err-reg-phone','err-reg-matric','err-reg-pass','err-phone-exists');
+}
+
+function selectRole(role) {
+  currentRole = role;
+  document.getElementById('role-student').classList.toggle('selected', role === 'student');
+  document.getElementById('role-staff').classList.toggle('selected', role === 'staff');
+  document.getElementById('matric-field').style.display = role === 'student' ? 'block' : 'none';
+}
+
+// ══ LOGIN ══
+function handleLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const pass  = document.getElementById('login-pass').value.trim();
+  clearErrors('err-login-phone','err-login-pass','err-login-notfound');
+  let ok = true;
+  if (!phone || phone.length < 10) { fieldErr('err-login-phone', true); markInput('login-phone', true); ok = false; }
+  if (!pass) { fieldErr('err-login-pass', true); markInput('login-pass', true); ok = false; }
+  if (!ok) return;
+
+  const users = LS.getUsers();
+  const user  = users.find(u => u.phone === phone && u.password === pass);
+  if (!user) { fieldErr('err-login-notfound', true); return; }
+
+  LS.saveSession(user);
+  goToDashboard(user);
+}
+
+// ══ REGISTER ══
+function handleRegister() {
+  const name   = document.getElementById('reg-name').value.trim();
+  const phone  = document.getElementById('reg-phone').value.trim();
+  const email  = document.getElementById('reg-email').value.trim();
+  const matric = document.getElementById('reg-matric')?.value.trim();
+  const room   = document.getElementById('reg-room')?.value.trim();
+  const pass   = document.getElementById('reg-pass').value.trim();
+  clearErrors('err-reg-name','err-reg-phone','err-reg-email','err-reg-matric','err-reg-room','err-reg-pass','err-phone-exists');
+  let ok = true;
+  if (!name) { fieldErr('err-reg-name', true); markInput('reg-name', true); ok = false; }
+  if (!phone || phone.length < 11) { fieldErr('err-reg-phone', true); markInput('reg-phone', true); ok = false; }
+  if (!email || !email.includes('@')) { fieldErr('err-reg-email', true); markInput('reg-email', true); ok = false; }
+  if (currentRole === 'student' && !matric) { fieldErr('err-reg-matric', true); markInput('reg-matric', true); ok = false; }
+  if (currentRole === 'student' && !room) { fieldErr('err-reg-room', true); markInput('reg-room', true); ok = false; }
+  if (!pass || pass.length < 6) { fieldErr('err-reg-pass', true); markInput('reg-pass', true); ok = false; }
+  if (!ok) return;
+
+  const users = LS.getUsers();
+  if (users.find(u => u.phone === phone)) { fieldErr('err-phone-exists', true); return; }
+
+  pendingUser = { name, phone, email, password: pass, role: currentRole, matric: matric || '', room: room || '', id: Date.now().toString() };
+  sendOTP(email);
+}
+
+// ══ OTP ══
+async function sendOTP(email) {
+  generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  document.getElementById('otp-email-display').textContent = email;
+  const hint = document.getElementById('otp-sending');
+  hint.innerHTML = 'Sending OTP... ⏳';
+  hint.style.display = 'block';
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('otp' + i);
+    el.value = ''; el.classList.remove('filled');
+  }
+  clearErrors('err-otp');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-otp').classList.add('active');
+
+  try {
+    await emailjs.send('service_wm599qf', 'template_tyc2q7o', {
+      to_name: pendingUser.name,
+      email: email,
+      otp_code: generatedOTP
+    });
+    hint.innerHTML = '✅ OTP sent to your email!';
+    hint.style.color = 'var(--success)';
+    showToast('OTP sent to ' + email);
+  } catch(err) {
+    hint.innerHTML = '❌ Failed to send email. Check your connection.';
+    hint.style.color = 'var(--danger)';
+    showToast('Email send failed', true);
+    console.error('EmailJS error:', err);
+  }
+  setTimeout(() => document.getElementById('otp0').focus(), 100);
+}
+
+function otpNext(el, idx) {
+  el.value = el.value.replace(/\D/g, '');
+  el.classList.toggle('filled', el.value !== '');
+  if (el.value && idx < 5) document.getElementById('otp' + (idx + 1)).focus();
+  if (idx === 5 && el.value) verifyOTP();
+}
+
+function verifyOTP() {
+  const entered = Array.from({length:6}, (_,i) => document.getElementById('otp'+i).value).join('');
+  clearErrors('err-otp');
+  if (entered !== generatedOTP) { fieldErr('err-otp', true); return; }
+
+  // Save user
+  const users = LS.getUsers();
+  users.push(pendingUser);
+  LS.saveUsers(users);
+  LS.saveSession(pendingUser);
+  showToast('Account created! Welcome 🎉');
+  goToDashboard(pendingUser);
+}
+
+function resendOTP() {
+  sendOTP(pendingUser.email);
+}
+
+// ══ DASHBOARD ══
+function goToDashboard(user) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (user.role === 'staff') {
+    document.getElementById('screen-staff').classList.add('active');
+    document.getElementById('staff-name').textContent = user.name.split(' ')[0];
+    document.getElementById('staff-avatar').textContent = user.name[0].toUpperCase();
+    refreshStaffDashboard();
+  } else {
+    document.getElementById('screen-student').classList.add('active');
+    document.getElementById('student-name').textContent = user.name.split(' ')[0];
+    document.getElementById('student-avatar').textContent = user.name[0].toUpperCase();
+    refreshStudentDashboard();
+  }
+}
+
+function logout() {
+  LS.clearSession();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-auth').classList.add('active');
+  showToast('Signed out');
+}
+
+// ══ TABS ══
+function switchTab(dashboard, tab, btn) {
+  document.querySelectorAll(`#screen-${dashboard} .tab-panel`).forEach(p => p.classList.remove('active'));
+  document.querySelectorAll(`#screen-${dashboard} .nav-tab`).forEach(t => t.classList.remove('active'));
+  document.getElementById(`${dashboard}-${tab}`).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══ ORDERS ══
+function calcEstimate() {
+  const items = parseInt(document.getElementById('order-items').value || 0);
+  const rate  = parseInt(document.getElementById('order-type').value || 0);
+  const est   = document.getElementById('order-estimate');
+  est.textContent = items && rate ? '₦' + (items * rate + 100).toLocaleString() : '—';
+}
+
+function placeOrder() {
+  const items  = document.getElementById('order-items').value;
+  const type   = document.getElementById('order-type').value;
+  const hostel = document.getElementById('order-hostel').value.trim();
+  const notes  = document.getElementById('order-notes').value.trim();
+  clearErrors('err-order-items','err-order-type','err-order-hostel');
+  let ok = true;
+  if (!items || items < 1) { fieldErr('err-order-items', true); ok = false; }
+  if (!type) { fieldErr('err-order-type', true); ok = false; }
+  if (!hostel) { fieldErr('err-order-hostel', true); ok = false; }
+  if (!ok) return;
+
+  const session = LS.getSession();
+  const orders  = LS.getOrders();
+  const orderId = 'ORD-' + String(orders.length + 1).padStart(3, '0');
+  const total   = parseInt(items) * parseInt(type) + 100;
+  const order   = {
+    id: orderId, studentId: session.id, studentName: session.name,
+    items: parseInt(items), washType: RATES[type], rate: parseInt(type),
+    hostel, notes, total, status: 'Pending',
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'})
+  };
+  orders.push(order);
+  LS.saveOrders(orders);
+
+  document.getElementById('order-items').value  = '';
+  document.getElementById('order-type').value   = '';
+  document.getElementById('order-hostel').value = '';
+  document.getElementById('order-notes').value  = '';
+  document.getElementById('order-estimate').textContent = '—';
+  refreshStudentDashboard();
+  showToast('Order ' + orderId + ' placed! ✓');
+}
+
+// ══ STUDENT DASHBOARD REFRESH ══
+function refreshStudentDashboard() {
+  const session = LS.getSession();
+  // Auto-fill room number from profile
+  const hostelInput = document.getElementById('order-hostel');
+  if (hostelInput && session.room && !hostelInput.value) hostelInput.value = session.room;
+  const orders  = LS.getOrders().filter(o => o.studentId === session.id);
+  const active  = orders.filter(o => !['Collected'].includes(o.status)).length;
+  const ready   = orders.filter(o => o.status === 'Ready').length;
+  const spent   = orders.reduce((s, o) => s + o.total, 0);
+
+  document.getElementById('s-stat-active').textContent = active;
+  document.getElementById('s-stat-total').textContent  = orders.length;
+  document.getElementById('s-stat-ready').textContent  = ready;
+  document.getElementById('s-stat-spent').textContent  = '₦' + (spent/1000).toFixed(1) + 'k';
+
+  // Recent orders
+  const recentEl = document.getElementById('s-recent-orders');
+  if (orders.length === 0) {
+    recentEl.innerHTML = '<p class="card-title" style="margin-bottom:16px">Recent Orders</p><p style="font-size:13px;color:var(--mid)">No orders yet. Place your first order!</p>';
+  } else {
+    const rows = orders.slice(-4).reverse().map(o => `
+      <div class="order-item">
+        <div class="order-info">
+          <div class="order-id">#${o.id} · ${o.items} item${o.items>1?'s':''}</div>
+          <div class="order-meta">${o.date} · ${o.washType}</div>
+        </div>
+        <span class="badge ${badgeClass(o.status)}">${o.status}</span>
+      </div>`).join('');
+    recentEl.innerHTML = '<p style="font-size:14px;font-weight:600;margin-bottom:16px">Recent Orders</p>' + rows;
+  }
+
+  // All orders tab
+  const listEl = document.getElementById('student-order-list');
+  if (orders.length === 0) {
+    listEl.innerHTML = '<p style="font-size:13px;color:var(--mid)">No orders yet.</p>';
+  } else {
+    listEl.innerHTML = orders.slice().reverse().map(o => `
+      <div class="order-item">
+        <div class="order-info">
+          <div class="order-id">#${o.id} · ${o.items} items · ${o.washType}</div>
+          <div class="order-meta">${o.date} · ${o.hostel}</div>
+        </div>
+        <span class="badge ${badgeClass(o.status)}">${o.status}</span>
+      </div>`).join('');
+  }
+
+  // Receipts
+  const receiptEl = document.getElementById('student-receipt-list');
+  const completed = orders.filter(o => ['Ready','Collected'].includes(o.status));
+  if (completed.length === 0) {
+    receiptEl.innerHTML = '<p style="font-size:13px;color:var(--mid)">No receipts yet.</p>';
+  } else {
+    receiptEl.innerHTML = completed.slice().reverse().map(o => `
+      <div class="card">
+        <div class="card-title">Receipt · #${o.id}</div>
+        <div class="card-sub" style="margin-bottom:16px">${o.date}</div>
+        <div class="receipt-card">
+          <div class="receipt-row"><span>${o.washType} × ${o.items} items</span><span>₦${(o.items*o.rate).toLocaleString()}</span></div>
+          <div class="receipt-row"><span>Pickup fee</span><span>₦100</span></div>
+          <div class="receipt-total"><span>Total</span><span>₦${o.total.toLocaleString()}</span></div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ══ STAFF DASHBOARD REFRESH ══
+function refreshStaffDashboard() {
+  const orders   = LS.getOrders();
+  const newOrds  = orders.filter(o => o.status === 'Pending');
+  const progress = orders.filter(o => o.status === 'Washing');
+  const ready    = orders.filter(o => o.status === 'Ready');
+  const revenue  = orders.filter(o => o.status === 'Collected').reduce((s,o) => s+o.total, 0);
+
+  document.getElementById('st-stat-new').textContent      = newOrds.length;
+  document.getElementById('st-stat-progress').textContent = progress.length;
+  document.getElementById('st-stat-ready').textContent    = ready.length;
+  document.getElementById('st-stat-revenue').textContent  = '₦' + (revenue/1000).toFixed(1) + 'k';
+
+  // New orders
+  const newEl = document.getElementById('staff-new-orders');
+  if (newOrds.length === 0) {
+    newEl.innerHTML = '<p style="font-size:13px;color:var(--mid)">No new orders.</p>';
+  } else {
+    newEl.innerHTML = newOrds.map(o => orderRowStaff(o)).join('');
+  }
+
+  // All orders
+  const allEl = document.getElementById('staff-all-orders');
+  if (orders.length === 0) {
+    allEl.innerHTML = '<p style="font-size:13px;color:var(--mid)">No orders yet.</p>';
+  } else {
+    allEl.innerHTML = orders.slice().reverse().map(o => orderRowStaff(o)).join('');
+  }
+}
+
+function orderRowStaff(o) {
+  const opts = ['Pending','Washing','Ready','Collected'].map(s =>
+    `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('');
+  return `
+    <div class="order-item" id="order-row-${o.id}">
+      <div class="order-info">
+        <div class="order-id">#${o.id} · ${o.studentName} · ${o.items} items</div>
+        <div class="order-meta">${o.washType} · ${o.date} · ${o.hostel}</div>
+      </div>
+      <div class="order-actions">
+        <span class="badge ${badgeClass(o.status)}" id="badge-${o.id}">${o.status}</span>
+        <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">${opts}</select>
+      </div>
+    </div>`;
+}
+
+function updateOrderStatus(orderId, newStatus) {
+  const orders = LS.getOrders();
+  const order  = orders.find(o => o.id === orderId);
+  if (order) { order.status = newStatus; LS.saveOrders(orders); }
+  refreshStaffDashboard();
+  showToast('Order #' + orderId + ' → ' + newStatus);
+}
+
+function badgeClass(status) {
+  return { Pending:'badge-pending', Washing:'badge-washing', Ready:'badge-done', Collected:'badge-done', New:'badge-new' }[status] || 'badge-pending';
+}
+
+// ══ CHAT ══
+function tsNow() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function appendMsg(id, text, side) {
+  const box = document.getElementById(id);
+  const m = document.createElement('div');
+  m.className = 'msg ' + side;
+  m.innerHTML = text + '<div class="msg-time">' + tsNow() + '</div>';
+  box.appendChild(m);
+  box.scrollTop = box.scrollHeight;
+}
+const replies = [
+  "Thanks! We'll get that sorted for you right away.",
+  "Your order is being processed. We'll notify you when it's ready.",
+  "Sure! Let me check on that for you.",
+  "No problem at all. Anything else you need?",
+  "Got it! We'll take extra care with that."
+];
+function sendStudentMsg() {
+  const input = document.getElementById('student-chat-input');
+  const text = input.value.trim(); if (!text) return;
+  appendMsg('student-messages', text, 'me'); input.value = '';
+  setTimeout(() => appendMsg('student-messages', replies[Math.floor(Math.random()*replies.length)], 'them'), 900);
+}
+function sendStaffMsg() {
+  const input = document.getElementById('staff-chat-input');
+  const text = input.value.trim(); if (!text) return;
+  appendMsg('staff-messages', text, 'me'); input.value = '';
+}
+
+// ══ TOAST ══
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+  t.style.color = isError ? 'var(--white)' : 'var(--navy)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══ INIT: restore session ══
+(function init() {
+  const session = LS.getSession();
+  if (session) { goToDashboard(session); }
+})();
+</script>
+</body>
+</html>
